@@ -5,14 +5,14 @@
 #include <string>
 #include <cmath>
 
-static const sf::Color EW_BG        {18,  18,  28,  255};
-static const sf::Color EW_PANEL     {28,  28,  45,  255};
-static const sf::Color EW_ACCENT    {72,  149, 239, 255};
-static const sf::Color EW_ACCENT2   {80,  220, 160, 255};   // teal for B+ bar
-static const sf::Color EW_DIM       {40,  90,  160, 255};
-static const sf::Color EW_TXT_P     {230, 230, 245, 255};
-static const sf::Color EW_TXT_S     {130, 130, 160, 255};
-static const sf::Color EW_TRACK     {40,  40,  65,  255};
+static const sf::Color EW_BG        {20, 16, 14, 255};
+static const sf::Color EW_PANEL     {34, 28, 24, 255};
+static const sf::Color EW_ACCENT    {233, 180, 76, 255};
+static const sf::Color EW_ACCENT2   {232, 120, 90, 255};   // coral for B+ bar
+static const sf::Color EW_DIM       {150, 110, 40, 255};
+static const sf::Color EW_TXT_P     {245, 240, 230, 255};
+static const sf::Color EW_TXT_S     {165, 150, 130, 255};
+static const sf::Color EW_TRACK     {52, 44, 36, 255};
 
 static void ewCard(sf::RenderWindow& w, float x, float y, float bw, float bh,
                    sf::Color fill, sf::Color outline = sf::Color::Transparent, float t = 0.f)
@@ -74,7 +74,7 @@ void EfficiencyWindow::draw(sf::RenderWindow& window,
     // Background glow
     sf::RectangleShape glow({WIN_W, 200.f});
     glow.setPosition({0, 0});
-    glow.setFillColor({30, 60, 140, 25});
+    glow.setFillColor({110, 80, 30, 25});
     window.draw(glow);
 
     // Center panel
@@ -123,7 +123,7 @@ void EfficiencyWindow::draw(sf::RenderWindow& window,
         int pct = static_cast<int>(fill * 100.f);
         std::string pctStr = std::to_string(pct) + "%";
         sf::Text pctTxt(m_font, pctStr, 13);
-        pctTxt.setFillColor({10, 10, 20, 255});
+        pctTxt.setFillColor({28, 20, 12, 255});
         float pctX = trackX + fillW - pctTxt.getLocalBounds().size.x - 8.f;
         if (pctX < trackX + 4.f) {
             // put it outside the bar in normal color
@@ -140,7 +140,7 @@ void EfficiencyWindow::draw(sf::RenderWindow& window,
 
     // Footer
     sf::Text hint(m_font, "Please wait — populating data structures...", 13);
-    hint.setFillColor({70, 70, 100, 255});
+    hint.setFillColor({95, 82, 66, 255});
     hint.setPosition({cx - hint.getLocalBounds().size.x / 2.f, WIN_H - 30.f});
     window.draw(hint);
 }
