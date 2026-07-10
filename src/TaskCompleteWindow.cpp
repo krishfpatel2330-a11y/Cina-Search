@@ -4,15 +4,15 @@
 #include <algorithm>
 #include <string>
 
-static const sf::Color TC_BG       {18,  18,  28,  255};
-static const sf::Color TC_PANEL    {28,  28,  45,  255};
-static const sf::Color TC_ACCENT   {72,  149, 239, 255};
-static const sf::Color TC_GREEN    {80,  220, 130, 255};
-static const sf::Color TC_DIM      {40,  90,  160, 255};
-static const sf::Color TC_TXT_P    {230, 230, 245, 255};
-static const sf::Color TC_TXT_S    {130, 130, 160, 255};
-static const sf::Color TC_ITEM_BG  {35,  35,  58,  255};
-static const sf::Color TC_ITEM_ALT {32,  32,  52,  255};
+static const sf::Color TC_BG       {20, 16, 14, 255};
+static const sf::Color TC_PANEL    {34, 28, 24, 255};
+static const sf::Color TC_ACCENT   {233, 180, 76, 255};
+static const sf::Color TC_GREEN    {120, 205, 120, 255};
+static const sf::Color TC_DIM      {150, 110, 40, 255};
+static const sf::Color TC_TXT_P    {245, 240, 230, 255};
+static const sf::Color TC_TXT_S    {165, 150, 130, 255};
+static const sf::Color TC_ITEM_BG  {42, 34, 28, 255};
+static const sf::Color TC_ITEM_ALT {38, 31, 25, 255};
 
 static void tcCard(sf::RenderWindow& w, float x, float y, float bw, float bh,
                    sf::Color fill, sf::Color outline = sf::Color::Transparent, float t = 0.f)
@@ -87,7 +87,7 @@ void TaskCompleteWindow::draw(sf::RenderWindow& window,
     // Background glow
     sf::RectangleShape glow({WIN_W, 180.f});
     glow.setPosition({0, 0});
-    glow.setFillColor({30, 80, 60, 20});
+    glow.setFillColor({60, 50, 20, 20});
     window.draw(glow);
 
     // Header
@@ -144,12 +144,12 @@ void TaskCompleteWindow::draw(sf::RenderWindow& window,
 
     sf::RectangleShape fadeTop({LIST_W, 18.f});
     fadeTop.setPosition({LIST_X, LIST_TOP});
-    fadeTop.setFillColor({18, 18, 28, 120});
+    fadeTop.setFillColor({20, 16, 14, 120});
     window.draw(fadeTop);
 
     sf::RectangleShape fadeBot({LIST_W, 18.f});
     fadeBot.setPosition({LIST_X, LIST_BOT - 18.f});
-    fadeBot.setFillColor({18, 18, 28, 120});
+    fadeBot.setFillColor({20, 16, 14, 120});
     window.draw(fadeBot);
 
     // Winner message
@@ -161,7 +161,7 @@ void TaskCompleteWindow::draw(sf::RenderWindow& window,
 
     // Footer
     sf::Text hint(m_font, "Scroll to browse   ESC to exit", 12);
-    hint.setFillColor({70, 70, 100, 255});
+    hint.setFillColor({95, 82, 66, 255});
     hint.setPosition({cx - hint.getLocalBounds().size.x / 2.f, WIN_H - 22.f});
     window.draw(hint);
 }
