@@ -1,0 +1,136 @@
+#include "../include/BTree.h"
+#include <string>
+#include <iostream>
+using namespace std;
+
+BTreeNode::BTreeNode(int _t, bool _leaf) {
+    t = _t;
+    leaf = _leaf;
+    max = 2 * _t - 1;
+}
+
+BTree::BTree(int _t) {
+    root = nullptr;
+    t = _t;
+    max = 2 * _t - 1;
+}
+
+void BTreeNode::insert_nonfull(const string& actor, const string& movie) {
+    if (leaf) {
+        size_t i = 0;
+        while (i < actors.size() && actor > actors[i]) {
+            i++;
+        }
+        if (i < actors.size() && actors[i] == actor) {
+            movies[i].push_back(movie);
+        }
+        else {
+            actors.insert(actors.begin() + i, actor);
+            movies.insert(movies.begin() + i, vector<string>{movie});
+        }
+    }
+    else {
+        size_t i = 0;
+        while (i < actors.size() && actor > actors[i]) {
+            i++;
+        }
+        if (children[i]->actors.size() == max) {
+            split(i, children[i]);
+            if (actor > actors[i]) {
+                i++;
+            }
+        }
+        children[i]->insert_nonfull(actor, movie);
+    }
+}
+
+void BTreeNode::split(int child_ind, BTreeNode* full_child) {
+    BTreeNode* new_node = new BTreeNode(full_child->t, full_child->leaf);
+    string middle_actor = full_child->actors[t - 1];
+    vector<string> middle_movies = full_child->movies[t - 1];
+    for (size_t i = 0; i < t - 1; i++) {
+        new_node->actors.push_back(full_child->actors[i + t]);
+        new_node->movies.push_back(full_child->movies[i + t]);
+    }
+    if (!(full_child->leaf)) {
+        for (size_t i = 0; i < t; i++) {
+            new_node->children.push_back(full_child->children[i + t]);
+        }
+    }
+    full_child->actors.resize(t - 1);
+    full_child->movies.resize(t - 1);
+    if (!(full_child->leaf)) {
+        full_child->children.resize(t);
+    }
+    children.insert(children.begin() + child_ind + 1, new_node);
+    actors.insert(actors.begin() + child_ind, middle_actor);
+    movies.insert(movies.begin() + child_ind, middle_movies);
+}
+
+vector<string>* BTreeNode::node_search(const string& actor) {
+    size_t i = 0;
+    while (i < actors.size() && actor > actors[i]) {
+        i++;
+    }
+    if (i < actors.size() && actors[i] == actor) {
+        return &movies[i];
+    }
+    else if (leaf) {
+        return nullptr;
+    }
+    else {
+        return children[i]->node_search(actor);
+    }
+}
+
+void BTree::insert(const string& actor, const string& movie) {
+    if (root == nullptr) {
+        root = new BTreeNode(t, true);
+        root->actors.push_back(actor);
+        root->movies.push_back({movie});
+    }
+    else {
+        if (root->actors.size() == max) {
+            BTreeNode* new_root = new BTreeNode(t, false);
+            new_root->children.push_back(root);
+            new_root->split(0, root);
+            size_t child_ind = 0;
+            if (actor > new_root->actors[0]) {
+                child_ind++;
+            }
+            root = new_root;
+            BTreeNode* actual_child = root->children[child_ind];
+            actual_child->insert_nonfull(actor, movie);
+        }
+        else {
+            root->insert_nonfull(actor, movie);
+        }
+    }
+}
+
+vector<string> BTree::search(const string& actor) {
+    if (root == nullptr) {
+        return {};
+    }
+    vector<string>* all_movies = root->node_search(actor);
+    if (all_movies != nullptr) {
+        return *all_movies;
+    }
+    else {
+        return {};
+    }
+}
+
+BTreeNode::~BTreeNode() {
+    for (auto child : children) {
+        delete child;
+    }
+    children.clear();
+    actors.clear();
+    movies.clear();
+}
+
+BTree::~BTree() {
+    delete root;
+    root = nullptr;
+}
