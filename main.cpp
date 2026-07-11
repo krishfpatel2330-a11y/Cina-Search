@@ -76,26 +76,36 @@ int main()
             if (!ok || !window.isOpen()) break;
         }
 
-        clearBridgesCache();
-
         // DATA FETCH
+        // Use the on-disk cache so repeat searches of the same year range are
+        // near-instant. Only clear + retry if we hit a poisoned cache entry
+        // (BRIDGES caches the server response before validating it, so a bad
+        // Wikidata reply can get stored and then fail to parse on later runs).
         std::vector<bridges::dataset::MovieActorWikidata> wikidataRecords;
-        try {
-            std::cerr << "Fetching data for years " << query.yearStart
-                      << " to " << query.yearEnd << "\n";
-            wikidataRecords = ds.getWikidataActorMovie(query.yearStart,
-                                                       query.yearEnd);
-            std::cerr << "Fetched " << wikidataRecords.size() << " records.\n";
-        } catch (const std::string& e) {
-            std::cerr << "BRIDGES error: " << e << "\n";
-            continue;
-        } catch (const char* e) {
-            std::cerr << "BRIDGES error: " << e << "\n";
-            continue;
-        } catch (const std::exception& e) {
-            std::cerr << "Exception: " << e.what() << "\n";
-            continue;
+        bool fetched = false;
+        for (int attempt = 0; attempt < 2 && !fetched; ++attempt) {
+            try {
+                std::cerr << "Fetching data for years " << query.yearStart
+                          << " to " << query.yearEnd << "\n";
+                wikidataRecords = ds.getWikidataActorMovie(query.yearStart,
+                                                           query.yearEnd);
+                std::cerr << "Fetched " << wikidataRecords.size() << " records.\n";
+                fetched = true;
+            } catch (const char* e) {
+                // "Malformed JSON" comes through here — likely a poisoned cache
+                // entry. Wipe it and retry once with a fresh fetch.
+                std::cerr << "Fetch error: " << e
+                          << " -- clearing cache and retrying\n";
+                clearBridgesCache();
+            } catch (const std::string& e) {
+                std::cerr << "BRIDGES error: " << e << "\n";
+                break;
+            } catch (const std::exception& e) {
+                std::cerr << "Exception: " << e.what() << "\n";
+                break;
+            }
         }
+        if (!fetched) continue;
 
         // TREE BUILD & TIMING
         // both trees receive the same dataset
@@ -104,27 +114,43 @@ int main()
             seen.insert(std::make_pair(record.getActorName(), record.getMovieName()));
         }
 
-        // B+ Tree
+        // Average each build over several runs so the number is stable and not
+        // dominated by one-off noise. Each run builds a fresh tree from empty.
+        static const int NUM_RUNS = 100;
+
+        // B+ Tree timing (microseconds)
+        long long bpTotalUs = 0;
+        for (int run = 0; run < NUM_RUNS; ++run) {
+            BPTree tmp(BP_TREE_ORDER);
+            auto start = std::chrono::high_resolution_clock::now();
+            for (const auto& pair : seen) {
+                tmp.insert(pair.first, pair.second);
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            bpTotalUs += std::chrono::duration_cast<std::chrono::microseconds>(
+                end - start).count();
+        }
+        float bpUs = static_cast<float>(bpTotalUs) / NUM_RUNS;
+
+        // B Tree timing (microseconds)
+        long long bTotalUs = 0;
+        for (int run = 0; run < NUM_RUNS; ++run) {
+            BTree tmp(B_TREE_T);
+            auto start = std::chrono::high_resolution_clock::now();
+            for (const auto& pair : seen) {
+                tmp.insert(pair.first, pair.second);
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            bTotalUs += std::chrono::duration_cast<std::chrono::microseconds>(
+                end - start).count();
+        }
+        float bUs = static_cast<float>(bTotalUs) / NUM_RUNS;
+
+        // Build the real B+ Tree once (untimed) for the actual query below.
         BPTree bpTree(BP_TREE_ORDER);
-        auto bpStart = std::chrono::high_resolution_clock::now();
         for (const auto& pair : seen) {
             bpTree.insert(pair.first, pair.second);
         }
-        auto bpEnd = std::chrono::high_resolution_clock::now();
-        float bpMs = static_cast<float>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                bpEnd - bpStart).count());
-
-        // B Tree
-        BTree bTree(B_TREE_T);
-        auto bStart = std::chrono::high_resolution_clock::now();
-        for (const auto& pair : seen) {
-            bTree.insert(pair.first, pair.second);
-        }
-        auto bEnd = std::chrono::high_resolution_clock::now();
-        float bMs = static_cast<float>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(
-                bEnd - bStart).count());
 
         //  retrieve movies for the requested actor from B+ Tree
         std::vector<std::string> movies = bpTree.findMovies(query.actorName);
@@ -137,12 +163,12 @@ int main()
         }
 
         // Lower time wins. B+ Tree wins on a tie.
-        std::string winner = (bMs < bpMs) ? "B Tree" : "B+ Tree";
+        std::string winner = (bUs < bpUs) ? "B Tree" : "B+ Tree";
 
         // SCREEN 2: Efficiency Display Window
         {
             EfficiencyWindow ew;
-            bool ok = ew.run(window, bMs, bpMs);
+            bool ok = ew.run(window, bUs, bpUs);
             if (!ok || !window.isOpen()) break;
         }
 
