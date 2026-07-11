@@ -4,17 +4,17 @@
 #include <algorithm>
 #include <cctype>
 
-static const sf::Color BG_COLOR        {18,  18,  28,  255};
-static const sf::Color PANEL_COLOR     {28,  28,  45,  255};
-static const sf::Color ACCENT          {72,  149, 239, 255};   // blue
-static const sf::Color ACCENT_DIM      {40,  90,  160, 255};
-static const sf::Color TEXT_PRIMARY    {230, 230, 245, 255};
-static const sf::Color TEXT_SECONDARY  {130, 130, 160, 255};
-static const sf::Color FIELD_BG        {35,  35,  55,  255};
-static const sf::Color FIELD_ACTIVE    {45,  45,  72,  255};
-static const sf::Color ERROR_COLOR     {220, 80,  80,  255};
-static const sf::Color BTN_NORMAL      {72,  149, 239, 255};
-static const sf::Color BTN_HOVER       {100, 170, 255, 255};
+static const sf::Color BG_COLOR        {20, 16, 14, 255};
+static const sf::Color PANEL_COLOR     {34, 28, 24, 255};
+static const sf::Color ACCENT          {233, 180, 76, 255};   // gold (marquee accent)
+static const sf::Color ACCENT_DIM      {150, 110, 40, 255};
+static const sf::Color TEXT_PRIMARY    {245, 240, 230, 255};
+static const sf::Color TEXT_SECONDARY  {165, 150, 130, 255};
+static const sf::Color FIELD_BG        {42, 34, 28, 255};
+static const sf::Color FIELD_ACTIVE    {54, 44, 34, 255};
+static const sf::Color ERROR_COLOR     {225, 90, 70, 255};
+static const sf::Color BTN_NORMAL      {233, 180, 76, 255};
+static const sf::Color BTN_HOVER       {245, 200, 110, 255};
 
 // Tiny helper
 static void drawCard(sf::RenderWindow& w, float x, float y, float bw, float bh,
@@ -179,7 +179,7 @@ void MainWindow::draw(sf::RenderWindow& window)
     drawCard(window, 0, 0, WIN_W, WIN_H, BG_COLOR);
     sf::RectangleShape glow({WIN_W, 200.f});
     glow.setPosition({0, 0});
-    glow.setFillColor({40, 80, 160, 30});
+    glow.setFillColor({120, 90, 30, 30});
     window.draw(glow);
 
     // Center card
@@ -206,7 +206,7 @@ void MainWindow::draw(sf::RenderWindow& window)
                          const std::string& buf, bool focused, const std::string& placeholder)
     {
         sf::Color bg = focused ? FIELD_ACTIVE : FIELD_BG;
-        sf::Color border = focused ? ACCENT : sf::Color{60, 60, 90, 255};
+        sf::Color border = focused ? ACCENT : sf::Color{70, 60, 50, 255};
         drawCard(window, fx, fy, fw, FIELD_H, bg, border, focused ? 2.f : 1.f);
 
         sf::Text lbl(m_font, label, 11);
@@ -217,7 +217,7 @@ void MainWindow::draw(sf::RenderWindow& window)
         if (buf.empty() && !focused) {
             // Draw placeholder
             sf::Text ph(m_font, placeholder, 14);
-            ph.setFillColor({90, 90, 120, 255});
+            ph.setFillColor({120, 105, 88, 255});
             ph.setPosition({fx + 10.f, fy + 13.f});
             window.draw(ph);
         } else {
@@ -253,7 +253,7 @@ void MainWindow::draw(sf::RenderWindow& window)
 
     sf::Text btnTxt(m_font, "START", 18);
     btnTxt.setStyle(sf::Text::Bold);
-    btnTxt.setFillColor({10, 10, 20, 255});
+    btnTxt.setFillColor({28, 20, 12, 255});
     btnTxt.setPosition({btnX + 70.f - btnTxt.getLocalBounds().size.x / 2.f,
                         btnY + 13.f});
     window.draw(btnTxt);
@@ -268,7 +268,7 @@ void MainWindow::draw(sf::RenderWindow& window)
 
     //Footer hint
     sf::Text hint(m_font, "Tab to switch fields   Enter to submit", 12);
-    hint.setFillColor({70, 70, 100, 255});
+    hint.setFillColor({95, 82, 66, 255});
     hint.setPosition({cx - hint.getLocalBounds().size.x / 2.f, WIN_H - 30.f});
     window.draw(hint);
 }
