@@ -1,0 +1,32 @@
+#pragma once
+#include <vector>
+#include <string>
+using namespace std;
+
+class BTreeNode {
+public:
+    vector<string> actors;
+    vector<vector<string>> movies;
+    vector<BTreeNode*> children;
+    size_t t;
+    bool leaf;
+    size_t max;
+    BTreeNode(int _t, bool _leaf);
+    void insert_nonfull(const string& actor, const string& movie);
+    void split(int child_ind, BTreeNode* full_child);
+    vector<string>* node_search(const string& actor);
+    ~BTreeNode();
+};
+
+class BTree {
+private:
+    BTreeNode* root;
+    size_t t;
+
+public:
+    BTree(int _t);
+    void insert(const string& actor, const string& movie);
+    vector<string> search(const string& actor);
+    size_t max;
+    ~BTree();
+};
