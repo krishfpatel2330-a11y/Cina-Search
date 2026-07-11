@@ -1,0 +1,19 @@
+#pragma once
+#include "BPNode.hpp"
+#include <string>
+#include <vector>
+
+class BPTree {
+public:
+    explicit BPTree(const int& order);
+    ~BPTree();
+
+    void insert(const std::string& actorName, const std::string& movieName);
+    std::vector<std::string> findMovies(const std::string& actorName);
+
+private:
+    BPNode* root;
+    int order;
+
+    static void deleteChildren(BPNode* node);
+};
