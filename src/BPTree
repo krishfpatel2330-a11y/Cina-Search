@@ -1,0 +1,38 @@
+#include "../include/BPTree.hpp"
+#include "../include/BPNode.hpp"
+#include <iostream>
+#include <queue>
+
+std::vector<std::string> BPTree::findMovies(const std::string& actorName) {
+    return root->findMovies(actorName);
+}
+
+void BPTree::insert(const std::string& actorName, const std::string& movieName) {
+    BPNode* node = this->root;
+    node->insertKey(actorName, movieName);
+    if (node->keys.size() == node->order) {
+        BPNode* newRoot = new BPNode(order);
+        this->root = newRoot;
+        newRoot->children.push_back(node);
+        newRoot->isLeaf = false;
+        newRoot->splitChild(0);
+    }
+}
+
+BPTree::BPTree(const int& order) {
+    this->root = new BPNode(order);
+    this->order = order;
+}
+
+void BPTree::deleteChildren(BPNode* node) {
+    if (!node)
+        return;
+    for (int i = 0; i < node->children.size(); i++) {
+        deleteChildren(node->children[i]);
+    }
+    delete node;
+}
+
+BPTree::~BPTree() {
+    deleteChildren(this->root);
+}
