@@ -1,0 +1,119 @@
+#ifndef PROJECT2_BPNODE_HPP
+#define PROJECT2_BPNODE_HPP
+
+#include <algorithm>
+#include <string>
+#include <vector>
+
+class BPNode {
+public:
+    std::vector<std::string> keys; // actor names
+    std::vector<std::vector<std::string>> values; // movie names
+    int order;
+    std::vector<BPNode*> children; // only for internal nodes
+    BPNode* next; // only for leaf nodes
+    bool isLeaf;
+
+    explicit BPNode(const int o, BPNode* n = nullptr) {
+        this->order = o;
+        this->next = n;
+        this->isLeaf = true;
+        this->keys.reserve(this->order);
+        this->values.reserve(this->order);
+        this->children.reserve(this->order);
+    }
+
+    ~BPNode() = default;
+
+    // called when we try to insert into a node and it's full.
+    void splitChild(const int& i) {
+        BPNode* oldNode = this->children[i];
+        BPNode* rightNode = new BPNode(oldNode->order, oldNode->next);
+        oldNode->next = (oldNode->isLeaf ? rightNode : nullptr);
+        this->children.insert(this->children.begin() + i + 1, rightNode); // inserts rightNode in this->children immediately after oldNode
+        rightNode->isLeaf = oldNode->isLeaf;
+
+        if (oldNode->isLeaf) {
+            int split = oldNode->keys.size() / 2;
+            rightNode->keys.assign(oldNode->keys.begin() + split, oldNode->keys.end());
+            oldNode->keys.resize(split);
+            rightNode->values.assign(oldNode->values.begin() + split, oldNode->values.end());
+            oldNode->values.resize(split);
+
+            this->keys.insert(this->keys.begin() + i, rightNode->keys[0]); // promote key
+        }
+        else {
+            int split = oldNode->keys.size() / 2;
+            std::string promoteKey = oldNode->keys[split];
+
+            rightNode->keys.assign(oldNode->keys.begin() + split + 1, oldNode->keys.end());
+            oldNode->keys.resize(split);
+            rightNode->children.assign(oldNode->children.begin() + split + 1, oldNode->children.end());
+            oldNode->children.resize(split + 1);
+
+            // promote first key to this->keys and erase it
+            this->keys.insert(this->keys.begin() + i, promoteKey); // promote key then erase from oldNode
+        }
+    }
+
+    void insertKey(const std::string& actor, const std::string& movie) {
+        int i = this->keys.size() - 1;
+        if (this->isLeaf) {
+            // find i
+            while (i >= 0 && actor < keys[i]) {
+                i--;
+            }
+            i++;
+            // i now points to index of where this value should be inserted
+            // check if this key already exists
+            if (i > 0 && keys[i - 1] == actor) {
+                // append to this vector
+                values[i - 1].push_back(movie);
+            }
+            else {
+                // key doesn't exist
+                keys.insert(keys.begin() + i, actor); // place this actor in the right spot
+                values.insert(values.begin() + i, std::vector<std::string>(1, movie));
+            }
+        }
+        else {
+            // find child where to insert this key and value
+            while (i >= 0 && keys[i] > actor) {
+                i--;
+            }
+            i++; // increment i because children[i] is the child less than keys[i] but we want >= keys[i]
+            // i is now the index of the child where this new actor belongs
+            this->children[i]->insertKey(actor, movie); // recurse into child
+            // check whether child[i] needs to be split
+            if (this->children[i]->keys.size() == this->order) {
+                this->splitChild(i);
+            }
+        }
+    }
+
+    std::vector<std::string> findMovies(const std::string& actorName) {
+        if (this->isLeaf) {
+            std::vector<std::string> movies;
+            for (int i = 0; i < this->keys.size(); i++) {
+                if (this->keys[i] == actorName) {
+                    for (const std::string& s: this->values[i]) {
+                        movies.push_back(s);
+                    }
+                    break;
+                }
+            }
+            return movies;
+        }
+        else {
+            // find index of child to go into
+            int i = this->keys.size() - 1;
+            while (i >= 0 && actorName < keys[i]) {
+                i--;
+            }
+            i++; // index of child >= key is 1 + index of key
+            return this->children[i]->findMovies(actorName);
+        }
+    }
+};
+
+#endif //PROJECT2_BPNODE_HPP
